@@ -15,7 +15,7 @@ int iwram_brk(void *addr)
 	emuprint("iwram brk: %p (sp: %p)", addr, get_sp());
 	if(addr > get_sp()) {
 		/*return -1;*/
-		panic(get_pc(), "iwram_brk (%p) >= sp", addr);
+		panic("iwram_brk (%p) >= sp", addr);
 	}
 	top = addr;
 	return 0;
@@ -33,7 +33,7 @@ void *malloc_nf_impl(size_t sz, const char *file, int line)
 {
 	void *p;
 	if(!(p = malloc(sz))) {
-		panic(get_pc(), "%s:%d malloc %lu\n", file, line, (unsigned long)sz);
+		panic("%s:%d malloc %lu\n", file, line, (unsigned long)sz);
 	}
 	return p;
 }
@@ -42,7 +42,7 @@ void *calloc_nf_impl(size_t num, size_t sz, const char *file, int line)
 {
 	void *p;
 	if(!(p = calloc(num, sz))) {
-		panic(get_pc(), "%s:%d calloc %lu\n", file, line, (unsigned long)(num * sz));
+		panic("%s:%d calloc %lu\n", file, line, (unsigned long)(num * sz));
 	}
 	return p;
 }
@@ -50,7 +50,7 @@ void *calloc_nf_impl(size_t num, size_t sz, const char *file, int line)
 void *realloc_nf_impl(void *p, size_t sz, const char *file, int line)
 {
 	if(!(p = realloc(p, sz))) {
-		panic(get_pc(), "%s:%d realloc %lu\n", file, line, (unsigned long)sz);
+		panic("%s:%d realloc %lu\n", file, line, (unsigned long)sz);
 	}
 	return p;
 }
@@ -62,7 +62,7 @@ char *strdup_nf_impl(const char *s, const char *file, int line)
 
 	len = strlen(s);
 	if(!(res = malloc(len + 1))) {
-		panic(get_pc(), "%s:%d strdup\n", file, line);
+		panic("%s:%d strdup\n", file, line);
 	}
 	memcpy(res, s, len + 1);
 	return res;
