@@ -1,0 +1,11 @@
+*.o
+*.d
+*.swp
+*.elf
+.cache/
+cfg.mk
+*.map
+*.gba
+*.sav
+compile_commands.json
+imgquant
