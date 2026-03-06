@@ -2,6 +2,7 @@
 #define UTIL_H_
 
 #include <stdlib.h>
+#include <stdint.h>
 
 #define ARM_IWRAM	__attribute__((noinline, target("arm"), section(".iwram")))
 

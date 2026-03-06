@@ -9,3 +9,4 @@ cfg.mk
 *.sav
 compile_commands.json
 imgquant
+disasm

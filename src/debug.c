@@ -14,6 +14,9 @@ uint16_t vblperf_color[] = {
 	/* 60    30     20     15     12       10      8.5     7.5    6.6      6      5.4  ... */
 	0x5294, 0xffff, 0x3e0, 0xf863, 0xffc0, 0x3ff, 0x1ff, 0x001f, 0xf81f, 0x1e0, 0xffff, 0xffff, 0xffff
 };
+uint16_t *vblperf_palptr;
+volatile int vblperf_count;
+
 
 void vblperf_setcolor(int palidx)
 {
@@ -144,11 +147,9 @@ int dbg_drawstr(int x, int y, const char *fmt, ...)
 #define REG_DBG_FLAGS	REG16(0xfff700)
 #define REG_DBG_STR		REG8(0xfff600)
 
-void emuprint(const char *fmt, ...)
+void emuprint(const char *str)
 {
 	static int opened;
-	char buf[128];
-	va_list ap;
 
 	if(!opened) {
 		REG_DBG_ENABLE = 0xc0de;
@@ -158,15 +159,11 @@ void emuprint(const char *fmt, ...)
 		opened = 1;
 	}
 
-	va_start(ap, fmt);
-	vsnprintf(buf, sizeof buf, fmt, ap);
-	va_end(ap);
-
-	strcpy((char*)0x4fff600, buf);
+	strcpy((char*)0x4fff600, str);
 	REG_DBG_FLAGS = 0x104;	/* debug message */
 }
 #else
-void emuprint(const char *fmt, ...)
+void emuprint(const char *str)
 {
 }
 #endif

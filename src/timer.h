@@ -9,7 +9,7 @@
 #define disable_timer(x) \
 	do { REG_TMCNT_H(x) &= ~TMCNT_EN; } while(0)
 
-volatile unsigned long timer_msec;
+extern volatile unsigned long timer_msec;
 
 void init_timer(int tm, unsigned long rate_hz, void (*intr)(void));
 

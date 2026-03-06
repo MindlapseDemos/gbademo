@@ -9,6 +9,8 @@
  * - prescale 1024: 61.025us
  */
 
+volatile unsigned long timer_msec;
+
 static void timer_intr(void);
 
 void init_timer(int tm, unsigned long rate_hz, void (*intr)(void))

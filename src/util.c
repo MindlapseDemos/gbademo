@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "util.h"
@@ -12,7 +13,7 @@ int iwram_brk(void *addr)
 	if((char*)addr < &__iheap_start) {
 		addr = &__iheap_start;
 	}
-	emuprint("iwram brk: %p (sp: %p)", addr, get_sp());
+	printf("iwram brk: %p (sp: %p)", addr, get_sp());
 	if(addr > get_sp()) {
 		/*return -1;*/
 		panic("iwram_brk (%p) >= sp", addr);

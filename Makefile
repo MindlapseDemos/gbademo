@@ -1,5 +1,5 @@
-src = $(wildcard src/*.c) $(wildcard src/gba/*.c)
-ssrc = $(wildcard src/*.s) $(wildcard src/gba/*.s)
+src = $(wildcard src/*.c) $(wildcard src/libc/*.c)
+ssrc = $(wildcard src/*.s) $(wildcard src/libc/*.s)
 obj = $(src:.c=.o) $(ssrc:.s=.o)
 dep = $(src:.c=.d)
 name = gbademo
@@ -17,14 +17,14 @@ OBJCOPY = $(TCPREFIX)objcopy
 OBJDUMP = $(TCPREFIX)objdump
 
 #def =
-opt = -O3 -fomit-frame-pointer -fcommon -mcpu=arm7tdmi -mtune=arm7tdmi -mthumb -mthumb-interwork
+opt = -O3 -fomit-frame-pointer -mcpu=arm7tdmi -mtune=arm7tdmi -mthumb -mthumb-interwork
 dbg = -g
-#inc =
+inc = -nostdinc -Isrc/libc
 warn = -pedantic -Wall -Wno-char-subscripts
 
 CFLAGS = -std=gnu99 $(opt) $(dbg) $(warn) -MMD $(def) $(inc)
 ASFLAGS = -mthumb-interwork
-LDFLAGS = -mthumb -mthumb-interwork $(libs) -lm
+LDFLAGS = -mthumb -mthumb-interwork -nostdlib -T gbademo.ld -lgcc $(libs)
 
 -include cfg.mk
 
@@ -36,9 +36,13 @@ $(bin): $(elf)
 	gbafix -r0 $(bin)
 
 $(elf): $(obj) $(libs)
-	$(CC) -o $(elf) $(obj) -specs=gba.specs -Wl,-Map,link.map $(LDFLAGS)
+	$(CC) -o $(elf) $(obj) -Wl,-Map,link.map $(LDFLAGS)
 
 -include $(dep)
+
+%.s: %.c
+	$(CC) -o $@ -S $< $(CFLAGS) -g0
+	mv $@ foo.s
 
 src/data.o: src/data.s $(data)
 
@@ -85,7 +89,8 @@ run: $(bin)
 .PHONY: debug
 debug: $(elf)
 	mgba -2 -g $(bin) &
-	$(TCPREFIX)gdb -x gdbmgba $<
+	gdb-multiarch $<
+#	$(TCPREFIX)gdb $<
 
 .PHONY: disasm
 disasm: $(elf)
