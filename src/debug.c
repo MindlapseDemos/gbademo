@@ -144,11 +144,9 @@ int dbg_drawstr(int x, int y, const char *fmt, ...)
 #define REG_DBG_FLAGS	REG16(0xfff700)
 #define REG_DBG_STR		REG8(0xfff600)
 
-void emuprint(const char *fmt, ...)
+void emuprint(const char *str)
 {
 	static int opened;
-	char buf[128];
-	va_list ap;
 
 	if(!opened) {
 		REG_DBG_ENABLE = 0xc0de;
@@ -158,15 +156,11 @@ void emuprint(const char *fmt, ...)
 		opened = 1;
 	}
 
-	va_start(ap, fmt);
-	vsnprintf(buf, sizeof buf, fmt, ap);
-	va_end(ap);
-
-	strcpy((char*)0x4fff600, buf);
+	strcpy((char*)0x4fff600, str);
 	REG_DBG_FLAGS = 0x104;	/* debug message */
 }
 #else
-void emuprint(const char *fmt, ...)
+void emuprint(const char *str)
 {
 }
 #endif

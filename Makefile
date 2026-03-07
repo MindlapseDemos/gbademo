@@ -1,5 +1,5 @@
-src = $(wildcard src/*.c) $(wildcard src/gba/*.c)
-ssrc = $(wildcard src/*.s) $(wildcard src/gba/*.s)
+src = $(wildcard src/*.c) $(wildcard src/libc/*.c)
+ssrc = $(wildcard src/*.s) $(wildcard src/libc/*.s)
 obj = $(src:.c=.o) $(ssrc:.s=.o)
 dep = $(src:.c=.d)
 name = gbademo

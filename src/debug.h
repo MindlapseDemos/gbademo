@@ -38,6 +38,6 @@ void dbg_drawglyph(int x, int y, int c);
 int dbg_drawstr(int x, int y, const char *fmt, ...);
 int dbg_vdrawstr(int x, int y, const char *fmt, va_list ap);
 
-void emuprint(const char *fmt, ...);
+void emuprint(const char *str);
 
 #endif	/* DEBUG_H_ */
