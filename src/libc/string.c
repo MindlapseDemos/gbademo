@@ -52,3 +52,18 @@ void *memcpy_c(void *dst, const void *src, size_t n)
 	}
 	return dst;
 }
+
+/* TODO compare larger chunks */
+int memcmp(const void *s1, const void *s2, size_t n)
+{
+	const uint8_t *a8 = s1;
+	const uint8_t *b8 = s2;
+
+	while(n-- > 0) {
+		int d = *a8 - *b8;
+		if(d != 0) return d;
+		a8++;
+		b8++;
+	}
+	return 0;
+}

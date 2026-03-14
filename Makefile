@@ -24,7 +24,7 @@ warn = -pedantic -Wall -Wno-char-subscripts
 
 CFLAGS = -std=gnu99 $(opt) $(dbg) $(warn) -MMD $(def) $(inc)
 ASFLAGS = -mthumb-interwork
-LDFLAGS = -mthumb -mthumb-interwork -nostdlib $(libs) -lm
+LDFLAGS = -mthumb -mthumb-interwork -nostdlib -T gbademo.ld -lgcc $(libs) -lm
 
 -include cfg.mk
 
