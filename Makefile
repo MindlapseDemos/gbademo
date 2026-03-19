@@ -16,15 +16,16 @@ AS = $(TCPREFIX)as
 OBJCOPY = $(TCPREFIX)objcopy
 OBJDUMP = $(TCPREFIX)objdump
 
+arch = -mcpu=arm7tdmi -mthumb
 #def =
-opt = -O3 -fomit-frame-pointer -mcpu=arm7tdmi -mtune=arm7tdmi -mthumb -mthumb-interwork
+#opt = -O3 -fomit-frame-pointer
 dbg = -g
 inc = -nostdinc -Isrc/libc
 warn = -pedantic -Wall -Wno-char-subscripts
 
-CFLAGS = -std=gnu99 $(opt) $(dbg) $(warn) -MMD $(def) $(inc)
-ASFLAGS = -mthumb-interwork
-LDFLAGS = -mthumb -mthumb-interwork -nostdlib -T gbademo.ld -lgcc $(libs)
+CFLAGS = -std=gnu99 $(arch) $(opt) $(dbg) $(warn) -MMD $(def) $(inc)
+#ASFLAGS =
+LDFLAGS = $(arch) -nostdlib -T gbademo.ld -Wl,--gc-sections -Wl,-Map,link.map -lgcc $(libs)
 
 -include cfg.mk
 

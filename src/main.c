@@ -20,12 +20,14 @@ int main(void)
 
 	gba_setmode(MODE_LFB_240X160_8, 0);
 	gba_setbgcolor(1, 31, 0, 0);
+	gba_setbgcolor(0xff, 31, 31, 31);
 
 	reset_msec_timer();
 	intr_enable();
 
 	vblperf_setcolor(0);
 
+	panic("wtf");
 #ifdef TESTPROG
 	run_test();
 #endif
@@ -52,12 +54,11 @@ static void draw_frame(void)
 #ifdef TESTPROG
 #define ITER	1000
 #define BUFSZ	4096
-void *memcpy_c(void *dst, const void *src, size_t n);
-void *memcpy_asm(void *dst, const void *src, size_t n);
+void *memset_asm(void *dst, int c, size_t n);
 
 static void run_test(void)
 {
-	static unsigned char srcbuf[BUFSZ], dstbuf[BUFSZ];
+	static unsigned char dstbuf[BUFSZ];
 	int i, j, row;
 	unsigned int res, sz;
 
@@ -66,57 +67,52 @@ static void run_test(void)
 	gba_setbgcolor(0, 0, 0, 0);
 	gba_setbgcolor(0xff, 31, 31, 31);
 
-	for(i=0; i<BUFSZ/4; i++) {
-		((int*)srcbuf)[i] = rand();
-	}
-
 	row = 0;
 	sz = BUFSZ;
 
 	for(j=0; j<3; j++) {
-		dbg_drawstr(0, row, "copy %u bytes %u times", sz, ITER);
-		printf("test %u bytes %u times\n", sz, ITER);
+		dbg_drawstr(0, row, "fill %u bytes %u times", sz, ITER);
+		printf("fill %u bytes %u times\n", sz, ITER);
 		row += 14;
 
 		reset_msec_timer();
 		for(i=0; i<ITER; i++) {
-			memcpy(dstbuf, srcbuf, sz);
+			memset(dstbuf, 42, sz);
 		}
 		res = timer_msec;
-		dbg_drawstr(8, row, "simple: %u ms", res);
-		printf(" simple: %u ms\n", res);
+		dbg_drawstr(8, row, "memset C: %u ms", res);
+		printf(" memset C: %u ms\n", res);
 		row += 8;
 
 		reset_msec_timer();
 		for(i=0; i<ITER; i++) {
-			memcpy_c(dstbuf, srcbuf, sz);
+			memset_asm(dstbuf, 42, sz);
 		}
 		res = timer_msec;
-		dbg_drawstr(8, row, "memcpy_c: %u ms", res);
-		printf(" memcpy_c: %u ms\n", res);
+		dbg_drawstr(8, row, "memset ASM: %u ms", res);
+		printf(" memset ASM: %u ms\n", res);
 		row += 8;
 
 		reset_msec_timer();
 		for(i=0; i<ITER; i++) {
-			memcpy_asm(dstbuf, srcbuf, sz);
+			fill_16byte(dstbuf, 0xfedcba98, sz >> 4);
 		}
 		res = timer_msec;
-		dbg_drawstr(8, row, "memcpy_asm: %u ms", res);
-		printf(" memcpy_asm: %u ms\n", res);
+		dbg_drawstr(8, row, "fill_16b: %u ms", res);
+		printf(" fill_16b: %u ms\n", res);
 		row += 8;
 
 		reset_msec_timer();
 		for(i=0; i<ITER; i++) {
-			dma_copy32(3, dstbuf, srcbuf, sz >> 2, 0);
+			dma_fill32(3, dstbuf, 0x89abcdef, sz >> 2);
 		}
 		res = timer_msec;
-		dbg_drawstr(8, row, "dma_copy32: %u ms", res);
-		printf(" dma_copy32: %u ms\n\n", res);
+		dbg_drawstr(8, row, "dma_fill32: %u ms", res);
+		printf(" dma_fill32: %u ms\n\n", res);
 
 		row += 18;
 		sz >>= 3;
 	}
 
-	for(;;);
 }
 #endif

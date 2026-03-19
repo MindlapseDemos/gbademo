@@ -4,8 +4,8 @@
 	@ r0: dest
 	@ r1: src
 	@ r2: size
-	.globl memcpy_asm
-memcpy_asm:
+	.globl memcpy
+memcpy:
 	push {r4-r7}
 
 	cmp r2, #4
@@ -65,6 +65,72 @@ memcpy_bytes:
 	bne 0b
 
 memcpy_end:
+	pop {r4-r7}
+	bx lr
+
+	@ r0: dest
+	@ r1: value
+	@ r2: size
+	.globl memset_asm
+memset_asm:
+	push {r4-r7}
+
+	cmp r2, #4
+	blt memset_bytes
+	mov r7, #3
+	mov r3, r0
+	and r3, r7
+
+	@ fill bytes until pointer is 32bit aligned
+	cmp r3, #0
+	beq memset_aligned
+
+0:	strb r1, [r0]
+	add r0, #1
+	sub r2, #1
+	add r3, #1
+	and r3, r7
+	bne 0b
+
+memset_aligned:
+	@ properly aligned, fill 16 bytes at a time
+	cmp r2, #16
+	blt memset_words
+
+	ldr r3, =0x01010101
+	mul r3, r1
+	mov r4, r3
+	mov r5, r3
+	mov r6, r3
+
+0:	stmia r0!, {r3-r6}
+	sub r2, #16
+	cmp r2, #16
+	bge 0b
+
+memset_words:
+	@ find out what the trailing bytes are after we fill words
+	mov r4, r2
+	lsr r4, #2	@ r4: remaining words
+	mov r5, #3
+	and r2, r5	@ r2: trailing bytes
+
+	@ fill the remaining words
+	cmp r4, #0
+	beq memset_bytes
+0:	str r3, [r0]
+	add r0, #4
+	sub r4, #1
+	bne 0b
+
+memset_bytes:
+	cmp r2, #0
+	beq memset_end
+0:	sub r2, #1
+	strb r1, [r0, r2]
+	bne 0b
+
+memset_end:
 	pop {r4-r7}
 	bx lr
 	
