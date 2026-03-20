@@ -27,7 +27,6 @@ int main(void)
 
 	vblperf_setcolor(0);
 
-	panic("wtf");
 #ifdef TESTPROG
 	run_test();
 #endif
@@ -38,23 +37,31 @@ int main(void)
 	return 0;
 }
 
+
 static void draw_frame(void)
 {
+	static unsigned int nframes;
 	static unsigned int qpix = 1;
 	vblperf_begin();
 
 	fill_16byte(gba_lfb_back, qpix, 240 * 160 / 16);
-	qpix = (qpix >> 8) | (qpix << 24);
+	if((nframes & 3) == 3) {
+		qpix <<= 8;
+		if(!qpix) qpix = 1;
+	}
 
 	vblperf_end();
 	gba_vsync();
 	gba_pgflip();
+
+	nframes++;
 }
 
 #ifdef TESTPROG
 #define ITER	1000
 #define BUFSZ	4096
-void *memset_asm(void *dst, int c, size_t n);
+
+void *memset_c(void *dst, int c, size_t n);
 
 static void run_test(void)
 {
@@ -77,16 +84,16 @@ static void run_test(void)
 
 		reset_msec_timer();
 		for(i=0; i<ITER; i++) {
-			memset(dstbuf, 42, sz);
+			memset_c(dstbuf, 42, sz);
 		}
 		res = timer_msec;
-		dbg_drawstr(8, row, "memset C: %u ms", res);
+		dbg_drawstr(8, row, "memset simple C: %u ms", res);
 		printf(" memset C: %u ms\n", res);
 		row += 8;
 
 		reset_msec_timer();
 		for(i=0; i<ITER; i++) {
-			memset_asm(dstbuf, 42, sz);
+			memset(dstbuf, 42, sz);
 		}
 		res = timer_msec;
 		dbg_drawstr(8, row, "memset ASM: %u ms", res);
@@ -113,6 +120,6 @@ static void run_test(void)
 		row += 18;
 		sz >>= 3;
 	}
-
+	for(;;);
 }
 #endif

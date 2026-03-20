@@ -71,8 +71,8 @@ memcpy_end:
 	@ r0: dest
 	@ r1: value
 	@ r2: size
-	.globl memset_asm
-memset_asm:
+	.globl memset
+memset:
 	push {r4-r7}
 
 	cmp r2, #4

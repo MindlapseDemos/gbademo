@@ -30,15 +30,6 @@ int memcmp(const void *s1, const void *s2, size_t n)
 	return 0;
 }
 
-/* TODO fill larget blocks */
-void *memset(void *dst, int c, size_t n)
-{
-	unsigned char *ptr = dst;
-	while(n-- > 0) *ptr++ = c;
-	return dst;
-}
-
-
 char *strchr(const char *s, int c)
 {
 	while(*s) {

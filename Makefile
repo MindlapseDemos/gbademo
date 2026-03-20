@@ -18,13 +18,13 @@ OBJDUMP = $(TCPREFIX)objdump
 
 arch = -mcpu=arm7tdmi -mthumb
 #def =
-#opt = -O3 -fomit-frame-pointer
+opt = -O3 -fomit-frame-pointer
 dbg = -g
 inc = -nostdinc -Isrc/libc
 warn = -pedantic -Wall -Wno-char-subscripts
 
 CFLAGS = -std=gnu99 $(arch) $(opt) $(dbg) $(warn) -MMD $(def) $(inc)
-#ASFLAGS =
+ASFLAGS = $(arch)
 LDFLAGS = $(arch) -nostdlib -T gbademo.ld -Wl,--gc-sections -Wl,-Map,link.map -lgcc $(libs)
 
 -include cfg.mk
@@ -37,7 +37,7 @@ $(bin): $(elf)
 	gbafix -r0 $(bin)
 
 $(elf): $(obj) $(libs)
-	$(CC) -o $(elf) $(obj) -Wl,-Map,link.map $(LDFLAGS)
+	$(CC) -o $(elf) $(obj) $(LDFLAGS)
 
 -include $(dep)
 
@@ -78,6 +78,12 @@ clean:
 .PHONY: cleandep
 cleandep:
 	rm -f $(dep)
+
+.PHONY: deepclean
+deepclean:
+	find src -name '*.o' | xargs rm
+	find src -name '*.d' | xargs rm
+	rm *.elf *.gba
 
 .PHONY: install
 install: $(bin)
