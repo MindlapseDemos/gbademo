@@ -1,5 +1,6 @@
 	.text
 	.thumb
+	.cpu arm7tdmi
 
 	@ r0: dest
 	@ r1: src

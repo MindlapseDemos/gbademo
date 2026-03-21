@@ -5,6 +5,7 @@
 #include "timer.h"
 #include "util.h"
 #include "debug.h"
+#include "g3dtest.h"
 
 static void draw_frame(void);
 
@@ -25,6 +26,8 @@ int main(void)
 	reset_msec_timer();
 	intr_enable();
 
+	g3dtest_init();
+
 	vblperf_setcolor(0);
 
 #ifdef TESTPROG
@@ -40,21 +43,15 @@ int main(void)
 
 static void draw_frame(void)
 {
-	static unsigned int nframes;
-	static unsigned int qpix = 1;
 	vblperf_begin();
 
-	fill_16byte(gba_lfb_back, qpix, 240 * 160 / 16);
-	if((nframes & 3) == 3) {
-		qpix <<= 8;
-		if(!qpix) qpix = 1;
-	}
+	fill_16byte(gba_lfb_back, 0, 240 * 160 / 16);
+
+	g3dtest_draw();
 
 	vblperf_end();
 	gba_vsync();
 	gba_pgflip();
-
-	nframes++;
 }
 
 #ifdef TESTPROG

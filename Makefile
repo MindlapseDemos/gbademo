@@ -1,5 +1,5 @@
-src = $(wildcard src/*.c) $(wildcard src/libc/*.c)
-ssrc = $(wildcard src/*.s) $(wildcard src/libc/*.s)
+src = $(wildcard src/*.c) $(wildcard src/g3d/*.c) $(wildcard src/libc/*.c)
+ssrc = $(wildcard src/*.s) $(wildcard src/g3d/*.s) $(wildcard src/libc/*.s)
 obj = $(src:.c=.o) $(ssrc:.s=.o)
 dep = $(src:.c=.d)
 name = gbademo
@@ -18,9 +18,9 @@ OBJDUMP = $(TCPREFIX)objdump
 
 arch = -mcpu=arm7tdmi -mthumb
 #def =
-opt = -O3 -fomit-frame-pointer
+#opt = -O3 -fomit-frame-pointer
 dbg = -g
-inc = -nostdinc -Isrc/libc
+inc = -nostdinc -Isrc -Isrc/libc
 warn = -pedantic -Wall -Wno-char-subscripts
 
 CFLAGS = -std=gnu99 $(arch) $(opt) $(dbg) $(warn) -MMD $(def) $(inc)
