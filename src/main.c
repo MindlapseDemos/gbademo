@@ -5,6 +5,8 @@
 #include "timer.h"
 #include "util.h"
 #include "debug.h"
+#include "g3d/g3d.h"
+#include "xmath.h"
 #include "g3dtest.h"
 
 static void draw_frame(void);
@@ -55,68 +57,116 @@ static void draw_frame(void)
 }
 
 #ifdef TESTPROG
-#define ITER	1000
-#define BUFSZ	4096
+#define ITER	3000
 
-void *memset_c(void *dst, int c, size_t n);
+void g3d_xform_loop(struct g3d_vertex *v, const int32_t *m);
+void g3d_xform_lowreg(struct g3d_vertex *v, const int32_t *m);
+void g3d_xform_lowreg_loop(struct g3d_vertex *v, const int32_t *m);
+void g3d_xform_nosav(struct g3d_vertex *v, const int32_t *m);
 
 static void run_test(void)
 {
-	static unsigned char dstbuf[BUFSZ];
-	int i, j, row;
-	unsigned int res, sz;
+	int i, row = 0;
+	unsigned int res;
+	struct g3d_vertex v2, v1 = {3, -5, 2, 1};
+	int32_t matrix[16];
 
 	glyphcolor = 0xff;
 	glyphfb = (void*)VRAM_LFB_FB0_ADDR;
 	gba_setbgcolor(0, 0, 0, 0);
 	gba_setbgcolor(0xff, 31, 31, 31);
 
-	row = 0;
-	sz = BUFSZ;
+	mat_rotz(matrix, 3);
 
-	for(j=0; j<3; j++) {
-		dbg_drawstr(0, row, "fill %u bytes %u times", sz, ITER);
-		printf("fill %u bytes %u times\n", sz, ITER);
-		row += 14;
+	dbg_drawstr(0, row, "mat4x4 x vec4 transform tests");
+	printf("mat4x4 x vec4 transform tests\n");
+	row += 16;
 
-		reset_msec_timer();
-		for(i=0; i<ITER; i++) {
-			memset_c(dstbuf, 42, sz);
-		}
-		res = timer_msec;
-		dbg_drawstr(8, row, "memset simple C: %u ms", res);
-		printf(" memset C: %u ms\n", res);
-		row += 8;
-
-		reset_msec_timer();
-		for(i=0; i<ITER; i++) {
-			memset(dstbuf, 42, sz);
-		}
-		res = timer_msec;
-		dbg_drawstr(8, row, "memset ASM: %u ms", res);
-		printf(" memset ASM: %u ms\n", res);
-		row += 8;
-
-		reset_msec_timer();
-		for(i=0; i<ITER; i++) {
-			fill_16byte(dstbuf, 0xfedcba98, sz >> 4);
-		}
-		res = timer_msec;
-		dbg_drawstr(8, row, "fill_16b: %u ms", res);
-		printf(" fill_16b: %u ms\n", res);
-		row += 8;
-
-		reset_msec_timer();
-		for(i=0; i<ITER; i++) {
-			dma_fill32(3, dstbuf, 0x89abcdef, sz >> 2);
-		}
-		res = timer_msec;
-		dbg_drawstr(8, row, "dma_fill32: %u ms", res);
-		printf(" dma_fill32: %u ms\n\n", res);
-
-		row += 18;
-		sz >>= 3;
+	reset_msec_timer();
+	for(i=0; i<ITER; i++) {
+		v2 = v1;
+		g3d_xform(&v2, matrix);
+		g3d_xform(&v2, matrix);
+		g3d_xform(&v2, matrix);
+		g3d_xform(&v2, matrix);
+		g3d_xform(&v2, matrix);
+		g3d_xform(&v2, matrix);
+		g3d_xform(&v2, matrix);
+		g3d_xform(&v2, matrix);
 	}
+	res = timer_msec;
+	dbg_drawstr(0, row, "many regs unrolled: %u ms", res);
+	printf("many regs unrolled: %u ms", res);
+	row += 10;
+
+	reset_msec_timer();
+	for(i=0; i<ITER; i++) {
+		v2 = v1;
+		g3d_xform_loop(&v2, matrix);
+		g3d_xform_loop(&v2, matrix);
+		g3d_xform_loop(&v2, matrix);
+		g3d_xform_loop(&v2, matrix);
+		g3d_xform_loop(&v2, matrix);
+		g3d_xform_loop(&v2, matrix);
+		g3d_xform_loop(&v2, matrix);
+		g3d_xform_loop(&v2, matrix);
+	}
+	res = timer_msec;
+	dbg_drawstr(0, row, "many regs loop: %u ms", res);
+	printf("many regs loop: %u ms", res);
+	row += 10;
+
+	reset_msec_timer();
+	for(i=0; i<ITER; i++) {
+		v2 = v1;
+		g3d_xform_lowreg(&v2, matrix);
+		g3d_xform_lowreg(&v2, matrix);
+		g3d_xform_lowreg(&v2, matrix);
+		g3d_xform_lowreg(&v2, matrix);
+		g3d_xform_lowreg(&v2, matrix);
+		g3d_xform_lowreg(&v2, matrix);
+		g3d_xform_lowreg(&v2, matrix);
+		g3d_xform_lowreg(&v2, matrix);
+	}
+	res = timer_msec;
+	dbg_drawstr(0, row, "fewer regs unroll: %u ms", res);
+	printf("fewer regs unroll: %u ms", res);
+	row += 10;
+
+	reset_msec_timer();
+	for(i=0; i<ITER; i++) {
+		v2 = v1;
+		g3d_xform_lowreg_loop(&v2, matrix);
+		g3d_xform_lowreg_loop(&v2, matrix);
+		g3d_xform_lowreg_loop(&v2, matrix);
+		g3d_xform_lowreg_loop(&v2, matrix);
+		g3d_xform_lowreg_loop(&v2, matrix);
+		g3d_xform_lowreg_loop(&v2, matrix);
+		g3d_xform_lowreg_loop(&v2, matrix);
+		g3d_xform_lowreg_loop(&v2, matrix);
+	}
+	res = timer_msec;
+	dbg_drawstr(0, row, "fewer regs loop: %u ms", res);
+	printf("fewer regs loop: %u ms", res);
+	row += 10;
+
+	reset_msec_timer();
+	for(i=0; i<ITER; i++) {
+		v2 = v1;
+		g3d_xform_nosav(&v2, matrix);
+		g3d_xform_nosav(&v2, matrix);
+		g3d_xform_nosav(&v2, matrix);
+		g3d_xform_nosav(&v2, matrix);
+		g3d_xform_nosav(&v2, matrix);
+		g3d_xform_nosav(&v2, matrix);
+		g3d_xform_nosav(&v2, matrix);
+		g3d_xform_nosav(&v2, matrix);
+	}
+	res = timer_msec;
+	dbg_drawstr(0, row, "nosave unrolled: %u ms", res);
+	printf("nosave unrolled: %u ms", res);
+	row += 10;
+
 	for(;;);
 }
 #endif
