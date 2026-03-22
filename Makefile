@@ -18,7 +18,7 @@ OBJDUMP = $(TCPREFIX)objdump
 
 arch = -mcpu=arm7tdmi -mthumb
 #def =
-#opt = -O3 -fomit-frame-pointer
+opt = -O3 -fomit-frame-pointer
 dbg = -g
 inc = -nostdinc -Isrc -Isrc/libc
 warn = -pedantic -Wall -Wno-char-subscripts

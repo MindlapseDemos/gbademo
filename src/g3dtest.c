@@ -4,6 +4,7 @@
 #include "mesh.h"
 #include "util.h"
 #include "xmath.h"
+#include "timer.h"
 
 #define VERT(x, y, z) { (x) << 16, (y) << 16, (z) << 16, 0x10000 }
 static struct g3d_vertex cube_varr[] = {
@@ -54,18 +55,16 @@ int g3dtest_init(void)
 
 void g3dtest_draw(void)
 {
-	static unsigned int nframes;
 	int32_t xform[16];
+	unsigned int anim = timer_msec >> 3;
 
 	mat_trans(xform, 0, 0, -0x70000);
-	mat_mul_rotx(xform, nframes);
-	mat_mul_roty(xform, nframes);
+	mat_mul_rotx(xform, anim);
+	mat_mul_roty(xform, anim);
 	g3d_modelview(xform);
 
 	g3d_fbpixels = gba_lfb_back;
 
 	//sort_mesh(&mesh, xform);
 	draw_mesh(&mesh);
-
-	nframes++;
 }
