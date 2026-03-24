@@ -66,26 +66,28 @@ g3d_xform3:
 
 	@ r0: matrix a ptr (dest)
 	@ r1: matrix b ptr
-	.globl mat_mult_asm
-mat_mult_asm:
+	.globl mat_mult_pre
+mat_mult_pre:
 	stmfd sp!, {r4-r11}
 
 	@ transpose matrix b to a temp buffer, then adjust r1 to point there
 	sub r2, sp, #64
+
+	.macro transpose_column
 	ldr r6, [r1, #48]; ldr r5, [r1, #32]; ldr r4, [r1, #16]; ldr r3, [r1], #4
 	stmia r2!, {r3-r6}
-	ldr r6, [r1, #48]; ldr r5, [r1, #32]; ldr r4, [r1, #16]; ldr r3, [r1], #4
-	stmia r2!, {r3-r6}
-	ldr r6, [r1, #48]; ldr r5, [r1, #32]; ldr r4, [r1, #16]; ldr r3, [r1], #4
-	stmia r2!, {r3-r6}
-	ldr r6, [r1, #48]; ldr r5, [r1, #32]; ldr r4, [r1, #16]; ldr r3, [r1]
-	stmia r2!, {r3-r6}
+	.endm
+
+	transpose_column
+	transpose_column
+	transpose_column
+	transpose_column
 
 	mov r12, #4
 0:	sub r1, sp, #64		@ bring r1 back to the top of B for the loop
 	ldmia r0, {r2-r5}	@ row from A in r2-r5
 
-	.macro matmulrow
+	.macro matmulrow_pre
 	ldmia r1!, {r6-r9}	@ column from B in r6-r9
 	smull r10,r11, r2,r6
 	smlal r10,r11, r3,r7
@@ -96,15 +98,55 @@ mat_mult_asm:
 	str r10, [r0], #4
 	.endm
 
-	matmulrow
-	matmulrow
-	matmulrow
-	matmulrow
+	matmulrow_pre
+	matmulrow_pre
+	matmulrow_pre
+	matmulrow_pre
 
 	subs r12, r12, #1
 	bne 0b
 
 	ldmfd sp!, {r4-r11}
 	bx lr
+
+
+	@ r0: matrix a ptr (dest)
+	@ r1: matrix b ptr
+	.globl mat_mult
+mat_mult:
+	stmfd sp!, {r4-r11,lr}
+	mov r14, r0
+
+	mov r12, #4
+	@ column from A into r2-r5
+0:	ldr r5, [r0, #48]; ldr r4, [r0, #32]; ldr r3, [r0, #16]; ldr r2, [r0]
+
+	.macro matmulrow
+	@ row from B into r6-r9
+	ldmia r1!, {r6-r9}
+	smull r10,r11, r2,r6
+	smlal r10,r11, r3,r7
+	smlal r10,r11, r4,r8
+	smlal r10,r11, r5,r9
+	mov r10, r10, LSR #16
+	orr r10, r11, LSL #16
+	.endm
+
+	matmulrow
+	str r10, [r0], #4
+	matmulrow
+	str r10, [r0, #16-4]
+	matmulrow
+	str r10, [r0, #32-4]
+	matmulrow
+	str r10, [r0, #48-4]
+
+	subs r12, r12, #1
+	subne r1, r1, #64	@ bring r1 back for the next loop
+	bne 0b
+
+	ldmfd sp!, {r4-r11,lr}
+	bx lr
+
 
 @ vim:ft=arm:

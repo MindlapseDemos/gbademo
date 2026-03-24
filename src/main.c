@@ -60,6 +60,7 @@ static void draw_frame(void)
 #define ITER	3000
 
 void mat_mult_asm(int32_t *ma, const int32_t *mb);
+void mat_mult_nott(int32_t *ma, const int32_t *mb);
 
 static void run_test(void)
 {
@@ -85,23 +86,22 @@ static void run_test(void)
 		mat_mult(ma, mb);
 	}
 	res = timer_msec;
-	dbg_drawstr(0, row, "matrix mult C: %u ms", res);
-	printf("matrix mult C: %u ms\n", res);
+	dbg_drawstr(0, row, "matrix mult: %u ms", res);
+	printf("matrix mult: %u ms\n", res);
 	row += 12;
 
 	reset_msec_timer();
 	for(i=0; i<ITER; i++) {
 		mat_identity(ma);
-		mat_mult_asm(ma, mb);
-		mat_mult_asm(ma, mb);
-		mat_mult_asm(ma, mb);
-		mat_mult_asm(ma, mb);
+		mat_mult_pre(ma, mb);
+		mat_mult_pre(ma, mb);
+		mat_mult_pre(ma, mb);
+		mat_mult_pre(ma, mb);
 	}
 	res = timer_msec;
-	dbg_drawstr(0, row, "matrix mult ASM: %u ms", res);
-	printf("matrix mult ASM: %u ms\n", res);
+	dbg_drawstr(0, row, "matrix pre-mult: %u ms", res);
+	printf("matrix pre-mult: %u ms\n", res);
 	row += 12;
-
 	for(;;);
 }
 #endif

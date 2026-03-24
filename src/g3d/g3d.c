@@ -64,14 +64,12 @@ void g3d_color(int cidx)
 	g3d_curcidx = cidx;
 }
 
-void mat_mult_asm(int32_t *ma, const int32_t *mb);
-
 static inline void update_matrix(void)
 {
 	if(!mvp_recalc) return;
 
-	memcpy(mvpmat, pmat, sizeof mvpmat);
-	mat_mult_asm(mvpmat, mvmat);
+	memcpy(mvpmat, mvmat, sizeof mvpmat);
+	mat_mult(mvpmat, pmat);
 
 	mvp_recalc = 0;
 }

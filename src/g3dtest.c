@@ -58,9 +58,9 @@ void g3dtest_draw(void)
 	int32_t xform[16];
 	unsigned int anim = timer_msec >> 3;
 
-	mat_trans(xform, 0, 0, -0x70000);
+	mat_roty(xform, anim);
 	mat_mul_rotx(xform, anim);
-	mat_mul_roty(xform, anim);
+	mat_mul_trans(xform, 0, 0, -0x70000);
 	g3d_modelview(xform);
 
 	g3d_fbpixels = gba_lfb_back;
