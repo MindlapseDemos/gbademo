@@ -2,6 +2,8 @@
 #include "xmath.h"
 #include "util.h"
 
+void mat_mult_asm(int32_t *ma, int32_t *mb);
+
 static const int32_t idmat[] = {
 	0x10000, 0, 0, 0,
 	0, 0x10000, 0, 0,
@@ -53,28 +55,28 @@ void mat_mul_trans(int32_t *m, int32_t x, int32_t y, int32_t z)
 {
 	int32_t tmp[16];
 	mat_trans(tmp, x, y, z);
-	mat_mult(m, tmp);
+	mat_mult_asm(m, tmp);
 }
 
 void mat_mul_rotx(int32_t *m, int32_t theta)
 {
 	int32_t tmp[16];
 	mat_rotx(tmp, theta);
-	mat_mult(m, tmp);
+	mat_mult_asm(m, tmp);
 }
 
 void mat_mul_rotz(int32_t *m, int32_t theta)
 {
 	int32_t tmp[16];
 	mat_rotz(tmp, theta);
-	mat_mult(m, tmp);
+	mat_mult_asm(m, tmp);
 }
 
 void mat_mul_roty(int32_t *m, int32_t theta)
 {
 	int32_t tmp[16];
 	mat_roty(tmp, theta);
-	mat_mult(m, tmp);
+	mat_mult_asm(m, tmp);
 }
 
 void mat_perspective(int32_t *m, int vfov, int32_t aspect, int32_t znear, int32_t zfar)
@@ -102,10 +104,10 @@ void mat_mult(int32_t *ma, int32_t *mb)
 	int32_t *row = ma;
 
 	for(i=0; i<4; i++) {
-		rptr[0] = (row[0] >> 8) * (mb[0] >> 8) + (row[1] >> 8) * (mb[4] >> 8) + (row[2] >> 8) * (mb[8] >> 8)  + (row[3] >> 8) * (mb[12] >> 8);
-		rptr[1] = (row[0] >> 8) * (mb[1] >> 8) + (row[1] >> 8) * (mb[5] >> 8) + (row[2] >> 8) * (mb[9] >> 8)  + (row[3] >> 8) * (mb[13] >> 8);
-		rptr[2] = (row[0] >> 8) * (mb[2] >> 8) + (row[1] >> 8) * (mb[6] >> 8) + (row[2] >> 8) * (mb[10] >> 8) + (row[3] >> 8) * (mb[14] >> 8);
-		rptr[3] = (row[0] >> 8) * (mb[3] >> 8) + (row[1] >> 8) * (mb[7] >> 8) + (row[2] >> 8) * (mb[11] >> 8) + (row[3] >> 8) * (mb[15] >> 8);
+		rptr[0] = ((int64_t)(row[0] * mb[0]) >> 16) + ((int64_t)(row[1] * mb[4]) >> 16) + ((int64_t)(row[2] * mb[8] ) >> 16) + ((int64_t)(row[3] * mb[12]) >> 16);
+		rptr[1] = ((int64_t)(row[0] * mb[1]) >> 16) + ((int64_t)(row[1] * mb[5]) >> 16) + ((int64_t)(row[2] * mb[9] ) >> 16) + ((int64_t)(row[3] * mb[13]) >> 16);
+		rptr[2] = ((int64_t)(row[0] * mb[2]) >> 16) + ((int64_t)(row[1] * mb[6]) >> 16) + ((int64_t)(row[2] * mb[10]) >> 16) + ((int64_t)(row[3] * mb[14]) >> 16);
+		rptr[3] = ((int64_t)(row[0] * mb[3]) >> 16) + ((int64_t)(row[1] * mb[7]) >> 16) + ((int64_t)(row[2] * mb[11]) >> 16) + ((int64_t)(row[3] * mb[15]) >> 16);
 		rptr += 4;
 		row += 4;
 	}

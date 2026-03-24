@@ -4,6 +4,7 @@
 #include "g3d.h"
 #include "gba.h"
 #include "util.h"
+#include "xmath.h"
 
 struct rect {
 	int x0, y0, x1, y1;
@@ -11,12 +12,13 @@ struct rect {
 
 static int32_t mvmat[16];
 static int32_t pmat[16];
+static int32_t mvpmat[16];
+static int mvp_recalc;
 static int vp[4];
 
 unsigned char *g3d_fbpixels;
 int g3d_width, g3d_height;
 unsigned int g3d_curcidx;
-
 
 
 int g3d_init(void)
@@ -25,6 +27,7 @@ int g3d_init(void)
 	memset(pmat, 0, sizeof pmat);
 	mvmat[0] = mvmat[5] = mvmat[10] = mvmat[15] = 0x10000;
 	pmat[0] = pmat[5] = pmat[10] = pmat[15] = 0x10000;
+	mvp_recalc = 1;
 	g3d_curcidx = 0xff;
 	return 0;
 }
@@ -47,16 +50,30 @@ void g3d_framebuffer(int width, int height, void *fb)
 void g3d_modelview(const int32_t *m)
 {
 	memcpy(mvmat, m, sizeof mvmat);
+	mvp_recalc = 1;
 }
 
 void g3d_projection(const int32_t *m)
 {
 	memcpy(pmat, m, sizeof pmat);
+	mvp_recalc = 1;
 }
 
 void g3d_color(int cidx)
 {
 	g3d_curcidx = cidx;
+}
+
+void mat_mult_asm(int32_t *ma, const int32_t *mb);
+
+static inline void update_matrix(void)
+{
+	if(!mvp_recalc) return;
+
+	memcpy(mvpmat, pmat, sizeof mvpmat);
+	mat_mult_asm(mvpmat, mvmat);
+
+	mvp_recalc = 0;
 }
 
 void g3d_draw(int prim, struct g3d_vertex *varr, int vcount)
@@ -85,16 +102,20 @@ void g3d_draw_prim(int prim, struct g3d_vertex *varr, unsigned short *idxarr)
 	int i, vcount, x, y;
 	struct g3d_vertex v[4];
 
+	update_matrix();
+
 	vcount = prim;
 
 	for(i=0; i<vcount; i++) {
 		v[i] = idxarr ? varr[idxarr[i]] : varr[i];
 
 		/* transform to view space */
-		g3d_xform(v + i, mvmat);
+		//g3d_xform3(v + i, mvmat);
 
 		/* transform to homogeneous clip space */
-		g3d_xform(v + i, pmat);
+		//g3d_xform(v + i, pmat);
+
+		g3d_xform(v + i, mvpmat);
 
 		/* TODO clip */
 

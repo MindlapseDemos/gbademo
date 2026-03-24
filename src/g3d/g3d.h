@@ -33,6 +33,7 @@ void g3d_modelview(const int32_t *m);
 void g3d_projection(const int32_t *m);
 
 void g3d_xform(struct g3d_vertex *v, const int32_t *m);
+void g3d_xform3(struct g3d_vertex *v, const int32_t *m);
 
 void g3d_color(int cidx);
 

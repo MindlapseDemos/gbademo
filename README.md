@@ -28,3 +28,11 @@ Debugging
 mgba includes a gdbserver. Run `make debug` to automatically start mgba in gdb
 debug mode, and connect gdb to it. You can set breakpoints, examine state, and
 so on as usual.
+
+Calling conventions cheatsheet
+------------------------------
+
+ - Arguments: r0-r3, the rest on the stack
+ - Return: r0
+ - Preserve registers: r4-r8, r10-r11
+ - Callee-saved (no need to save/restore): r0-r3, r9, r12
